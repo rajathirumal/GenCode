@@ -5,3 +5,5 @@ transformers
 torch               # Deplendency for transformers 
 datasets
 accelerate  #>=0.20.1
+
+urllib3==1.26.18

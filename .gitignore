@@ -7,6 +7,8 @@ download/
 error/
 log/
 token/
+temp/
+venv/
 # Run time log files
 .log
 
