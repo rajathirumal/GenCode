@@ -12,6 +12,9 @@ venv/
 # Run time log files
 .log
 
+# database
+db/
+
 # Generated models
 GCodeModel
 
