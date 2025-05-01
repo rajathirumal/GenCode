@@ -30,6 +30,8 @@ class GCodePreprocessingUtils:
             folder_path = os.path.join(pwd,folder_name)
             for root, dirs, files in os.walk(folder_path):
                 for file_name in files:
+                    if not "." in file_name:
+                        continue
                     file_path = os.path.join(root, file_name)
                     if any(ignored in file_path for ignored in IGNORABLE):
                         continue
