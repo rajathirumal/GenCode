@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass, field
 
 
@@ -6,4 +5,5 @@ from dataclasses import dataclass, field
 class Batch:
     batch_number: int
     batch_metrics: dict = field(repr=False)
-    batch_folder_count:int
+    batch_folder_count: int
+    batch_py_files: int

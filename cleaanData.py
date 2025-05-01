@@ -39,12 +39,29 @@ class DataCleaner:
         logging.info(self)
 
     def start_batch_process(self) -> None:
+        """Split the repository into batches and process each batch
+
+        The bathch size is 10% of the total number of folders in the repository.
+
+        The batch size is calculated based on the total number of folders in the repository.
+
+        """
         logging.info("Starting Batch process")
         percentage = 0.10
         total_folder_count = len(os.listdir(self.cleanDataIn))
         folder_start_segment = 0
-        folder_end_segment = int(total_folder_count * percentage)
-        batch_size = folder_end_segment - folder_start_segment
+        # If the total folder count is less than 10, set the batch size to 1
+        # Else, set the batch size to 10% of the total folder count
+        folder_end_segment = (
+            1
+            if (int(total_folder_count * percentage)) < 1
+            else int(total_folder_count * percentage)
+        )
+        batch_size = (
+            folder_end_segment
+            if (folder_end_segment - folder_start_segment) < folder_end_segment
+            else folder_end_segment - folder_start_segment
+        )
         batch_number = 0
         f_count = 0
         logging.debug(f"Total folders to scann: {total_folder_count}")
@@ -52,6 +69,8 @@ class DataCleaner:
 
         while f_count < total_folder_count:
             print(f"Batch {batch_number}/{(total_folder_count//batch_size)} ")
+            # Compute the last batch,
+            # if you have 11 repositories and batch size is 10, the last batch will have 1 folder
             if total_folder_count - f_count < batch_size:
                 folders_to_check = os.listdir(self.cleanDataIn)[folder_start_segment:]
                 f_count += total_folder_count - f_count
@@ -65,10 +84,14 @@ class DataCleaner:
             batch_metrics = self._preProcessor.folder_metrics(
                 folder_list=folders_to_check, batch_number=batch_number
             )
+            # Create a dataset file for the batch
+            py_file = [key for key in batch_metrics.keys() if key.endswith(".py")]
+
             b = Batch(
                 batch_number=batch_number,
                 batch_metrics=batch_metrics,
                 batch_folder_count=len(folders_to_check),
+                batch_py_files=len(py_file),
             )
             self.batch_list.append(b)
 
@@ -76,12 +99,11 @@ class DataCleaner:
             folder_end_segment += batch_size
             # Log size info for each batch
             self._logBatchInfo(batch=b)
-            # Create a dataset file for the batch
-            py_file = [key for key in batch_metrics.keys() if key.endswith(".py")]
             self._makeDataset.create_dataset(file_list=py_file, batch=batch_number)
 
             batch_number += 1
         logging.info("Batch process completed")
+
     def _logBatchInfo(self, batch: Batch):
         batch_kb, batch_mb, batch_gb = 0, 0, 0
         for kb, mb, gb in list(batch.batch_metrics.values()):
@@ -95,11 +117,12 @@ class DataCleaner:
             {batch_gb:.2f} GB
         """
         )
+        logging.info(f"Number of py files: {batch.batch_py_files}")
 
 
 def main() -> None:
-    #folder_path = "download"
-    folder_path = "/Volumes/Untitled/June2023"
+    folder_path = "download"
+    # folder_path = "/Volumes/Untitled/June2023"
     dc = DataCleaner(cleanDataIn=folder_path)
     dc.start_batch_process()
 
